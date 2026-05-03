@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌍 Kuis Bumi — IPAS Kelas 5</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #0a1628;
+  --sky2: #0d2247;
+  --earth: #2d5a1b;
+  --earth2: #1a3a0f;
+  --gold: #f5c842;
+  --gold2: #e8a020;
+  --teal: #00c9b1;
+  --coral: #ff6b6b;
+  --purple: #8b5cf6;
+  --white: #f0f4ff;
+  --card-bg: rgba(255,255,255,0.08);
+  --card-border: rgba(255,255,255,0.15);
+  --correct: #22c55e;
+  --wrong: #ef4444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh;
+  background: var(--sky);
+  overflow-x: hidden;
+  color: var(--white);
+}
+
+/* === ANIMATED BACKGROUND === */
+.bg-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #020b18 0%, #0a1e3d 40%, #0d3b5e 70%, #1a5a2e 85%, #0d3a10 100%);
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--dur) ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from { opacity: 0.2; transform: scale(0.8); }
+  to   { opacity: 1;   transform: scale(1.2); }
+}
+
+.cloud {
+  position: absolute;
+  background: rgba(255,255,255,0.07);
+  border-radius: 999px;
+  animation: drift var(--spd) linear infinite;
+}
+@keyframes drift {
+  from { transform: translateX(-200px); }
+  to   { transform: translateX(calc(100vw + 200px)); }
+}
+
+.mountain {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.earth-glow {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 200px;
+  background: radial-gradient(ellipse, rgba(29,150,60,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* floating particles */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: float-up var(--dur) ease-in-out infinite;
+  opacity: 0.6;
+}
+@keyframes float-up {
+  0%   { transform: translateY(0) scale(1);   opacity: 0.6; }
+  50%  { transform: translateY(-30px) scale(1.2); opacity: 1; }
+  100% { transform: translateY(0) scale(1);   opacity: 0.6; }
+}
+
+/* === MAIN LAYOUT === */
+#app {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.screen { display: none; width: 100%; max-width: 480px; }
+.screen.active { display: block; }
+
+/* === GLASS CARD === */
+.glass {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 28px 24px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+/* === JOIN CODE BANNER === */
+.join-banner {
+  text-align: center;
+  margin-bottom: 20px;
+  animation: fadeDown 0.6s ease;
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.join-label { font-size: 12px; color: rgba(255,255,255,0.6); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.join-code {
+  font-family: 'Fredoka One', cursive;
+  font-size: 42px;
+  color: var(--gold);
+  letter-spacing: 8px;
+  text-shadow: 0 0 30px rgba(245,200,66,0.5);
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+@keyframes pulse-gold {
+  0%,100% { text-shadow: 0 0 20px rgba(245,200,66,0.4); }
+  50%      { text-shadow: 0 0 40px rgba(245,200,66,0.8); }
+}
+.join-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+/* === START SCREEN === */
+.earth-emoji {
+  font-size: 64px;
+  display: block;
+  text-align: center;
+  margin-bottom: 4px;
+  animation: spin-slow 8s linear infinite;
+}
+@keyframes spin-slow {
+  from { transform: rotate(-5deg); }
+  to   { transform: rotate(5deg); }
+}
+
+.quiz-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 30px;
+  text-align: center;
+  color: var(--gold);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.quiz-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 24px;
+}
+
+.topic-chips { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+.chip {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.chip-lito { background: rgba(139,92,246,0.3); border: 1px solid rgba(139,92,246,0.6); color: #c4b5fd; }
+.chip-atmo { background: rgba(0,201,177,0.2); border: 1px solid rgba(0,201,177,0.5); color: #5eead4; }
+
+.name-label { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 6px; font-weight: 700; }
+.name-input {
+  width: 100%;
+  padding: 13px 16px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  color: white;
+  font-size: 16px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  outline: none;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+.name-input::placeholder { color: rgba(255,255,255,0.35); }
+.name-input:focus {
+  border-color: var(--gold);
+  background: rgba(255,255,255,0.14);
+  box-shadow: 0 0 0 3px rgba(245,200,66,0.2);
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.info-box {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+}
+.info-box-num { font-family: 'Fredoka One'; font-size: 26px; color: var(--teal); }
+.info-box-lbl { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+.start-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #f5c842, #e8a020);
+  border: none;
+  border-radius: 16px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 20px;
+  color: #1a0a00;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 20px rgba(245,200,66,0.4);
+}
+.start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(245,200,66,0.6); }
+.start-btn:active { transform: translateY(0); }
+
+/* === QUIZ SCREEN === */
+.quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.player-name-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.live-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.live-score-label { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+.live-score-val {
+  font-family: 'Fredoka One', cursive;
+  font-size: 26px;
+  color: var(--gold);
+  line-height: 1;
+  transition: all 0.3s;
+}
+.score-bump { animation: bump 0.4s ease; }
+@keyframes bump {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.4); color: #ffec80; }
+  100% { transform: scale(1); }
+}
+
+/* progress */
+.progress-wrap { margin-bottom: 14px; }
+.progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
+.progress-track {
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--teal), var(--purple));
+  transition: width 0.4s ease;
+  box-shadow: 0 0 8px rgba(0,201,177,0.5);
+}
+
+/* timer */
+.timer-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.timer-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.timer-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #22c55e, #f5c842);
+  transition: width 0.9s linear, background 0.5s;
+}
+.timer-fill.warning { background: linear-gradient(90deg, #ef4444, #ff6b6b); }
+.timer-num {
+  font-family: 'Fredoka One';
+  font-size: 20px;
+  min-width: 32px;
+  text-align: right;
+  color: var(--gold);
+}
+.timer-num.warning { color: var(--coral); animation: blink 0.5s step-end infinite; }
+@keyframes blink { 50% { opacity: 0.3; } }
+
+/* topic badge */
+.topic-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+.tb-lito { background: rgba(139,92,246,0.3); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.5); }
+.tb-atmo { background: rgba(0,201,177,0.2); color: #5eead4; border: 1px solid rgba(0,201,177,0.4); }
+
+.q-text {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.opt-btn {
+  display: block;
+  width: 100%;
+  padding: 13px 16px;
+  margin-bottom: 9px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 14px;
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.opt-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.18s;
+}
+.opt-btn:hover:not(:disabled)::before { background: rgba(255,255,255,0.06); }
+.opt-btn:hover:not(:disabled) { border-color: rgba(255,255,255,0.35); transform: translateX(4px); }
+.opt-btn.correct { background: rgba(34,197,94,0.25); border-color: #22c55e; color: #86efac; }
+.opt-btn.wrong   { background: rgba(239,68,68,0.2);  border-color: #ef4444; color: #fca5a5; }
+.opt-btn:disabled { cursor: default; }
+
+.opt-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.12);
+  font-size: 12px;
+  font-weight: 800;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.opt-btn.correct .opt-label { background: #22c55e; color: #fff; }
+.opt-btn.wrong .opt-label   { background: #ef4444; color: #fff; }
+
+.feedback {
+  display: none;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  margin-top: 4px;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.feedback.show { display: block; }
+.feedback-ok   { background: rgba(34,197,94,0.2);  border: 1px solid rgba(34,197,94,0.4);  color: #86efac; }
+.feedback-bad  { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color: #fca5a5; }
+
+/* points popup */
+.pts-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-family: 'Fredoka One';
+  font-size: 52px;
+  color: var(--gold);
+  text-shadow: 0 0 40px rgba(245,200,66,0.8);
+  z-index: 999;
+  pointer-events: none;
+  animation: none;
+}
+.pts-popup.show { animation: popShow 0.8s ease forwards; }
+@keyframes popShow {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  40%  { transform: translate(-50%, -80%) scale(1.3); opacity: 1; }
+  100% { transform: translate(-50%, -120%) scale(0.8); opacity: 0; }
+}
+
+.next-btn {
+  display: none;
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, var(--teal), #0891b2);
+  border: none;
+  border-radius: 14px;
+  font-family: 'Fredoka One';
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px rgba(0,201,177,0.35);
+}
+.next-btn.show { display: block; }
+.next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,201,177,0.5); }
+
+/* === RESULT SCREEN === */
+.trophy { font-size: 70px; text-align: center; display: block; margin-bottom: 8px; animation: trophy-bounce 0.8s ease; }
+@keyframes trophy-bounce {
+  0%  { transform: scale(0) rotate(-20deg); }
+  60% { transform: scale(1.2) rotate(5deg); }
+  100%{ transform: scale(1) rotate(0); }
+}
+
+.result-name {
+  text-align: center;
+  font-family: 'Fredoka One';
+  font-size: 22px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.result-title {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 20px;
+}
+
+.big-score {
+  text-align: center;
+  font-family: 'Fredoka One';
+  font-size: 72px;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 40px rgba(245,200,66,0.6);
+  margin-bottom: 4px;
+}
+.big-score-label { text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 20px; letter-spacing: 1px; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.stat-box {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.stat-val { font-family: 'Fredoka One'; font-size: 24px; }
+.stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.sv-correct { color: #86efac; }
+.sv-wrong   { color: #fca5a5; }
+.sv-pct     { color: var(--teal); }
+
+.result-msg {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-restart, .btn-review {
+  padding: 13px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Fredoka One';
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.btn-restart { background: linear-gradient(135deg, #f5c842, #e8a020); color: #1a0a00; }
+.btn-review  { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; }
+.btn-restart:hover, .btn-review:hover { transform: translateY(-2px); }
+
+/* confetti */
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  animation: confetti-fall var(--dur) ease-in forwards;
+  z-index: 500;
+}
+@keyframes confetti-fall {
+  0%   { transform: translate(0,0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--dx), 100vh) rotate(720deg); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND SCENE -->
+<div class="bg-scene">
+  <div class="bg-sky"></div>
+  <div id="stars-wrap"></div>
+  <div id="clouds-wrap"></div>
+  <!-- Mountains -->
+  <div class="mountain" style="left:0; border-width:0 140px 200px 0; border-color:transparent transparent #0d2e0a transparent;"></div>
+  <div class="mountain" style="left:80px; border-width:0 100px 150px 0; border-color:transparent transparent #163d12 transparent;"></div>
+  <div class="mountain" style="right:0; border-width:0 0 220px 160px; border-color:transparent transparent #0d2e0a transparent;"></div>
+  <div class="mountain" style="right:60px; border-width:0 0 160px 120px; border-color:transparent transparent #163d12 transparent;"></div>
+  <div class="mountain" style="left:50%; transform:translateX(-50%); border-width:0 120px 180px 120px; border-color:transparent transparent #102a0c transparent;"></div>
+  <div class="earth-glow"></div>
+  <div id="particles-wrap"></div>
+</div>
+
+<!-- POINTS POPUP -->
+<div class="pts-popup" id="pts-popup">+100</div>
+
+<div id="app">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="start-screen">
+    <div class="join-banner glass" style="padding:16px 20px; margin-bottom:16px;">
+      <div class="join-label">🎮 Kode Join Kuis</div>
+      <div class="join-code" id="join-code-display">---</div>
+      <div class="join-sub">Bagikan kode ini ke teman-temanmu!</div>
+    </div>
+
+    <div class="glass">
+      <span class="earth-emoji">🌍</span>
+      <div class="quiz-title">Kuis Bumi Seru!</div>
+      <div class="quiz-subtitle">IPAS Kelas 5 — Litosfer & Atmosfer</div>
+
+      <div class="topic-chips">
+        <span class="chip chip-lito">🪨 Litosfer</span>
+        <span class="chip chip-atmo">🌤️ Atmosfer</span>
+        <span class="chip" style="background:rgba(245,200,66,0.15);border:1px solid rgba(245,200,66,0.4);color:#fde68a;">⏱️ 20 detik/soal</span>
+      </div>
+
+      <div class="info-row">
+        <div class="info-box">
+          <div class="info-box-num">15</div>
+          <div class="info-box-lbl">Total Soal</div>
+        </div>
+        <div class="info-box">
+          <div class="info-box-num">150</div>
+          <div class="info-box-lbl">Poin Maks</div>
+        </div>
+      </div>
+
+      <div class="name-label">✏️ Nama Siswa</div>
+      <input class="name-input" id="name-input" type="text" placeholder="Tulis namamu di sini..." maxlength="30" autocomplete="off">
+
+      <button class="start-btn" onclick="startQuiz()">🚀 MULAI KUIS!</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="screen" id="quiz-screen">
+    <div class="quiz-header">
+      <div class="player-name-badge">
+        <span>🧑‍🎓</span>
+        <span id="player-name-display">Siswa</span>
+      </div>
+      <div class="live-score">
+        <div class="live-score-label">POIN</div>
+        <div class="live-score-val" id="live-score">0</div>
+      </div>
+    </div>
+
+    <div class="glass">
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="q-counter">Soal 1 / 15</span>
+          <span id="topic-label">Litosfer</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="timer-row">
+        <div class="timer-track">
+          <div class="timer-fill" id="timer-fill" style="width:100%"></div>
+        </div>
+        <div class="timer-num" id="timer-num">20</div>
+      </div>
+
+      <div id="topic-badge" class="topic-badge tb-lito">LITOSFER</div>
+      <div class="q-text" id="q-text">Loading...</div>
+      <div id="options-wrap"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQ()">Lanjut →</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="screen" id="result-screen">
+    <div class="glass">
+      <span class="trophy" id="trophy-emoji">🏆</span>
+      <div class="result-name" id="result-name">Nama Siswa</div>
+      <div class="result-title" id="result-rank">Pahlawan Bumi!</div>
+
+      <div class="big-score" id="big-score">0</div>
+      <div class="big-score-label">TOTAL POIN</div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-val sv-correct" id="r-correct">0</div>
+          <div class="stat-lbl">Benar ✓</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val sv-wrong" id="r-wrong">0</div>
+          <div class="stat-lbl">Salah ✗</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val sv-pct" id="r-pct">0%</div>
+          <div class="stat-lbl">Akurasi</div>
+        </div>
+      </div>
+
+      <div class="result-msg" id="result-msg"></div>
+
+      <div class="btn-row">
+        <button class="btn-restart" onclick="restartQuiz()">🔄 Ulangi</button>
+        <button class="btn-review" onclick="shareResult()">📤 Bagikan</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// =================== GENERATE BACKGROUND ===================
+(function() {
+  const sw = document.getElementById('stars-wrap');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*70}%;left:${Math.random()*100}%;--dur:${(Math.random()*2+1).toFixed(1)}s;animation-delay:${(Math.random()*2).toFixed(1)}s`;
+    sw.appendChild(s);
+  }
+  const cw = document.getElementById('clouds-wrap');
+  for (let i = 0; i < 4; i++) {
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    const w = 80 + Math.random()*120, h = 20 + Math.random()*30;
+    c.style.cssText = `width:${w}px;height:${h}px;top:${10+Math.random()*40}%;--spd:${(20+Math.random()*30).toFixed(0)}s;animation-delay:-${(Math.random()*20).toFixed(0)}s`;
+    cw.appendChild(c);
+  }
+  const pw = document.getElementById('particles-wrap');
+  const cols = ['rgba(0,201,177,0.6)','rgba(245,200,66,0.5)','rgba(139,92,246,0.5)','rgba(34,197,94,0.5)'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const sz = 3 + Math.random()*5;
+    p.style.cssText = `width:${sz}px;height:${sz}px;background:${cols[i%cols.length]};bottom:${5+Math.random()*30}%;left:${Math.random()*100}%;--dur:${(3+Math.random()*4).toFixed(1)}s;animation-delay:${(Math.random()*4).toFixed(1)}s`;
+    pw.appendChild(p);
+  }
+})();
+
+// =================== JOIN CODE ===================
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for (let i = 0; i < 6; i++) c += chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+const JOIN_CODE = genCode();
+document.getElementById('join-code-display').textContent = JOIN_CODE;
+
+// =================== QUESTIONS ===================
+const questions = [
+  { topic:'litosfer', q:'Lapisan bumi paling luar yang menjadi tempat makhluk hidup tinggal disebut...', opts:['Mantel bumi','Litosfer','Inti bumi','Astenosfer'], ans:1, exp:'Litosfer adalah lapisan paling luar bumi (kerak bumi) sebagai tempat daratan, lautan, dan kehidupan.' },
+  { topic:'litosfer', q:'Batuan yang terbentuk dari magma atau lava yang mendingin disebut batuan...', opts:['Sedimen','Metamorf','Beku','Organik'], ans:2, exp:'Batuan beku terbentuk dari magma/lava yang mendingin. Contoh: granit (dalam bumi) dan basalt (permukaan).' },
+  { topic:'litosfer', q:'Contoh batuan sedimen yang sering ditemukan di dasar sungai adalah...', opts:['Granit','Batu pasir','Marmer','Obsidian'], ans:1, exp:'Batu pasir adalah batuan sedimen dari endapan pasir yang memadat. Sering dijumpai di dasar sungai dan pantai.' },
+  { topic:'litosfer', q:'Batuan marmer terbentuk dari perubahan batuan...', opts:['Beku menjadi sedimen','Sedimen menjadi beku','Batu kapur menjadi metamorf','Pasir menjadi granit'], ans:2, exp:'Marmer adalah batuan metamorf yang berasal dari batu kapur (gamping) akibat tekanan dan suhu tinggi.' },
+  { topic:'litosfer', q:'Peristiwa keluarnya magma dari dalam bumi ke permukaan disebut...', opts:['Gempa bumi','Tsunami','Erupsi gunung berapi','Longsor'], ans:2, exp:'Erupsi adalah proses keluarnya magma, gas, dan material vulkanik dari gunung berapi ke permukaan bumi.' },
+  { topic:'litosfer', q:'Salah satu manfaat gunung berapi bagi kehidupan adalah...', opts:['Menyebabkan gempa bumi','Menghasilkan tanah yang subur','Menghancurkan bangunan','Menimbulkan tsunami'], ans:1, exp:'Abu vulkanik kaya mineral yang menyuburkan tanah, menjadikan area sekitar gunung berapi sangat subur untuk pertanian.' },
+  { topic:'litosfer', q:'Getaran yang terjadi akibat pergerakan lempeng bumi disebut...', opts:['Erupsi','Abrasi','Gempa bumi','Erosi'], ans:2, exp:'Gempa bumi terjadi akibat pergerakan atau tumbukan lempeng tektonik di bawah permukaan bumi.' },
+  { topic:'litosfer', q:'Lapisan inti bumi terdiri dari unsur...', opts:['Batuan sedimen dan metamorf','Besi dan nikel','Air dan gas','Tanah dan pasir'], ans:1, exp:'Inti bumi tersusun dari besi dan nikel. Inti dalam bersifat padat, inti luar bersifat cair karena suhu sangat tinggi.' },
+  { topic:'atmosfer', q:'Lapisan atmosfer paling bawah tempat terjadinya cuaca adalah...', opts:['Stratosfer','Mesosfer','Termosfer','Troposfer'], ans:3, exp:'Troposfer adalah lapisan atmosfer paling bawah (0–12 km). Semua fenomena cuaca seperti hujan dan angin terjadi di sini.' },
+  { topic:'atmosfer', q:'Lapisan atmosfer yang mengandung ozon pelindung dari sinar ultraviolet adalah...', opts:['Troposfer','Stratosfer','Mesosfer','Eksosfer'], ans:1, exp:'Stratosfer (12–50 km) mengandung lapisan ozon (O₃) yang menyerap radiasi UV berbahaya dari matahari.' },
+  { topic:'atmosfer', q:'Gas terbanyak yang menyusun atmosfer bumi adalah...', opts:['Oksigen (O₂)','Karbon dioksida (CO₂)','Nitrogen (N₂)','Hidrogen (H₂)'], ans:2, exp:'Nitrogen (N₂) menyusun ±78% atmosfer, diikuti oksigen ±21%, dan gas lainnya ±1%.' },
+  { topic:'atmosfer', q:'Proses penguapan air, naik ke atmosfer, mendingin, dan jatuh sebagai hujan disebut...', opts:['Evaporasi saja','Siklus air (hidrologi)','Kondensasi saja','Sublimasi'], ans:1, exp:'Siklus air meliputi evaporasi → kondensasi → presipitasi (hujan). Proses ini berlangsung terus-menerus di bumi.' },
+  { topic:'atmosfer', q:'Fungsi utama atmosfer bagi kehidupan di bumi adalah...', opts:['Membuat bumi lebih panas saja','Melindungi bumi dan menyediakan udara bernapas','Menghasilkan air hujan saja','Menyimpan batuan mineral'], ans:1, exp:'Atmosfer berfungsi sebagai pelindung dari radiasi berbahaya, penstabil suhu bumi, dan penyedia O₂ untuk makhluk hidup.' },
+  { topic:'atmosfer', q:'Lapisan atmosfer yang menjadi tempat terbakarnya meteor dan memantulkan gelombang radio adalah...', opts:['Troposfer','Stratosfer','Mesosfer','Termosfer'], ans:3, exp:'Termosfer/ionosfer memiliki suhu sangat tinggi. Meteor terbakar di sini, dan gelombang radio dipantulkan kembali ke bumi.' },
+  { topic:'atmosfer', q:'Angin terjadi karena adanya perbedaan...', opts:['Ketinggian tempat','Tekanan udara','Jenis batuan','Kedalaman laut'], ans:1, exp:'Angin bergerak dari area bertekanan tinggi ke tekanan rendah. Perbedaan tekanan disebabkan oleh perbedaan suhu udara.' }
+];
+
+// =================== STATE ===================
+let cur = 0, score = 0, correct = 0, wrong = 0;
+let timerInterval = null, timeLeft = 20;
+let answered = false;
+let playerName = 'Siswa';
+const TIMER_MAX = 20;
+
+// =================== SCREENS ===================
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// =================== START ===================
+function startQuiz() {
+  const n = document.getElementById('name-input').value.trim();
+  playerName = n || 'Anak Bumi';
+  cur = 0; score = 0; correct = 0; wrong = 0;
+  document.getElementById('player-name-display').textContent = playerName;
+  document.getElementById('live-score').textContent = '0';
+  show('quiz-screen');
+  renderQ();
+}
+
+// =================== RENDER QUESTION ===================
+function renderQ() {
+  answered = false;
+  clearInterval(timerInterval);
+
+  const q = questions[cur];
+  const pct = Math.round((cur / questions.length) * 100);
+
+  document.getElementById('q-counter').textContent = `Soal ${cur+1} / ${questions.length}`;
+  document.getElementById('topic-label').textContent = q.topic === 'litosfer' ? '🪨 Litosfer' : '🌤️ Atmosfer';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const badge = document.getElementById('topic-badge');
+  if (q.topic === 'litosfer') {
+    badge.className = 'topic-badge tb-lito';
+    badge.textContent = '🪨 LITOSFER';
+  } else {
+    badge.className = 'topic-badge tb-atmo';
+    badge.textContent = '🌤️ ATMOSFER';
+  }
+
+  document.getElementById('q-text').textContent = q.q;
+
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-label">${String.fromCharCode(65+i)}</span>${opt}`;
+    btn.onclick = () => pick(i);
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').className = 'next-btn';
+  document.getElementById('next-btn').textContent = cur === questions.length - 1 ? '🏆 Lihat Hasil' : 'Lanjut →';
+
+  startTimer();
+}
+
+// =================== TIMER ===================
+function startTimer() {
+  timeLeft = TIMER_MAX;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeUp();
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const fill = document.getElementById('timer-fill');
+  const num = document.getElementById('timer-num');
+  const pct = (timeLeft / TIMER_MAX) * 100;
+  fill.style.width = pct + '%';
+  num.textContent = timeLeft;
+  const warn = timeLeft <= 5;
+  fill.className = 'timer-fill' + (warn ? ' warning' : '');
+  num.className = 'timer-num' + (warn ? ' warning' : '');
+}
+
+function timeUp() {
+  answered = true;
+  wrong++;
+  const q = questions[cur];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[q.ans].classList.add('correct');
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback feedback-bad show';
+  fb.innerHTML = `⏰ Waktu habis! Jawaban benar: <strong>${q.opts[q.ans]}</strong>. ${q.exp}`;
+  document.getElementById('next-btn').classList.add('show');
+}
+
+// =================== PICK ANSWER ===================
+function pick(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = questions[cur];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[q.ans].classList.add('correct');
+
+  const fb = document.getElementById('feedback');
+  if (idx === q.ans) {
+    correct++;
+    // Points: base 10 + time bonus
+    const pts = 10 + Math.round(timeLeft * 0.5);
+    score += pts;
+    btns[idx].classList.add('correct');
+    fb.className = 'feedback feedback-ok show';
+    fb.innerHTML = `✅ Benar! ${q.exp}`;
+    updateScore(pts, true);
+  } else {
+    wrong++;
+    btns[idx].classList.add('wrong');
+    fb.className = 'feedback feedback-bad show';
+    fb.innerHTML = `❌ Kurang tepat. ${q.exp}`;
+  }
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function updateScore(pts, showPopup) {
+  document.getElementById('live-score').textContent = score;
+  const sv = document.getElementById('live-score');
+  sv.classList.remove('score-bump');
+  void sv.offsetWidth;
+  sv.classList.add('score-bump');
+
+  if (showPopup) {
+    const pop = document.getElementById('pts-popup');
+    pop.textContent = `+${pts}`;
+    pop.className = 'pts-popup show';
+    setTimeout(() => { pop.className = 'pts-popup'; }, 800);
+  }
+}
+
+// =================== NEXT ===================
+function nextQ() {
+  cur++;
+  if (cur >= questions.length) showResult();
+  else renderQ();
+}
+
+// =================== RESULT ===================
+function showResult() {
+  clearInterval(timerInterval);
+  show('result-screen');
+
+  const pct = Math.round((correct / questions.length) * 100);
+  document.getElementById('result-name').textContent = playerName;
+  document.getElementById('big-score').textContent = score;
+  document.getElementById('r-correct').textContent = correct;
+  document.getElementById('r-wrong').textContent = wrong;
+  document.getElementById('r-pct').textContent = pct + '%';
+
+  let trophy, rank, msg;
+  if (pct >= 87)     { trophy='🏆'; rank='Pahlawan Bumi!';       msg=`Luar biasa, ${playerName}! Kamu menguasai materi Litosfer dan Atmosfer dengan sangat baik. Pertahankan semangat belajarmu!`; }
+  else if (pct >= 67){ trophy='🌟'; rank='Hampir Sempurna!';     msg=`Kerja bagus, ${playerName}! Tinggal sedikit lagi menuju nilai sempurna. Ulangi bagian yang masih salah ya!`; }
+  else if (pct >= 47){ trophy='📚'; rank='Terus Semangat!';      msg=`Kamu sudah berusaha, ${playerName}. Baca kembali materi Litosfer dan Atmosfer, lalu coba lagi. Kamu pasti bisa!`; }
+  else               { trophy='💪'; rank='Jangan Menyerah!';     msg=`Tidak apa-apa, ${playerName}. Setiap ahli pernah jadi pemula. Pelajari materinya pelan-pelan dan coba lagi!`; }
+
+  document.getElementById('trophy-emoji').textContent = trophy;
+  document.getElementById('result-rank').textContent = rank;
+  document.getElementById('result-msg').textContent = msg;
+
+  if (pct >= 67) launchConfetti();
+}
+
+function launchConfetti() {
+  const colors = ['#f5c842','#00c9b1','#8b5cf6','#ff6b6b','#22c55e','#60a5fa'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      const dx = (Math.random()-0.5)*400;
+      c.style.cssText = `left:${Math.random()*100}%;top:-10px;background:${colors[i%colors.length]};--dur:${(1.5+Math.random()*1.5).toFixed(1)}s;--dx:${dx}px;animation-delay:${(Math.random()*0.5).toFixed(2)}s;transform:rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 3000);
+    }, i * 30);
+  }
+}
+
+function shareResult() {
+  const pct = Math.round((correct / questions.length) * 100);
+  const text = `🌍 Kuis IPAS Kelas 5 (Litosfer & Atmosfer)\n👤 ${playerName}\n🏆 Skor: ${score} poin\n✅ Benar: ${correct}/15 (${pct}%)\n🎮 Kode: ${JOIN_CODE}`;
+  if (navigator.share) {
+    navigator.share({ title: 'Hasil Kuis Bumi', text });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text);
+    alert('Hasil disalin ke clipboard!');
+  }
+}
+
+function restartQuiz() {
+  document.getElementById('name-input').value = '';
+  show('start-screen');
+}
+</script>
+</body>
+</html>
